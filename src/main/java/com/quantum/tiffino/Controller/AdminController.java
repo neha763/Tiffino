@@ -175,12 +175,15 @@ public class AdminController {
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam("email") String email) {
         try {
+            logger.info("Forgot password request received for email: {}", email);
             forgotPasswordService.generateOtpAndSendEmail(email);
             return ResponseEntity.ok("OTP has been sent to your email.");
         } catch (Exception e) {
+            logger.error("Error during forgot password process: {}", e.getMessage());
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
+
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam("otp") String otp,
@@ -194,15 +197,31 @@ public class AdminController {
         }
     }
 
+
+
     @PostMapping("/credential")
-    public ResponseEntity<String> saveCredential(@RequestParam("email") String email){
-        try{
-
-        adminService.credentialSendToEmail(email);
-        return ResponseEntity.ok("credential send to email");
-    } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error:"+e.getMessage());
+    public ResponseEntity<String> saveCredential(@RequestParam("email") String email) {
+        try {
+            logger.info("Sending credentials to email: {}", email);
+            adminService.credentialSendToEmail(email);
+            return ResponseEntity.ok("Credentials sent to email successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
-
     }
+
+    @PutMapping("/replace-manager/{adminId}")
+    public ResponseEntity<String> replaceMainManager(@PathVariable Long adminId,
+                                                     @RequestBody Admin newManager) {
+        try {
+            String response = adminService.replaceMainManager(adminId, newManager);
+            return ResponseEntity.ok(response);
+        }
+        catch(AdminNotFoundException e){
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
 }

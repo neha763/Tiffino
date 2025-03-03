@@ -56,7 +56,7 @@ public class CouponServiceImpl implements CouponService {
 
             coupon.setDiscountPercentage(updatedCoupon.getDiscountPercentage());
 
-            coupon.setDiscountAmount(updatedCoupon.getDiscountAmount());
+           // coupon.setDiscountAmount(updatedCoupon.getDiscountAmount());
 
             coupon.setActive(updatedCoupon.isActive());
 

@@ -80,6 +80,9 @@ public class Admin {
     @JsonManagedReference
     private List<Admin> adminsSupervised;
 
+    @Column(nullable = false)
+    private boolean firstLogin = true;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     @NotNull(message = "Role is required")
@@ -98,6 +101,14 @@ public class Admin {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
     }
 
     public void setName(String name) {

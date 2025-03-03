@@ -29,8 +29,8 @@ public class MealPlan {
         private List<MealCustomization> mealCustomizations;
 
 
-        @OneToMany(mappedBy = "mealPlan")
-        private List<Subscription> subscriptions;
+//        @OneToMany(mappedBy = "mealPlan")
+//        private List<Subscription> subscriptions;
 //
 //        @ManyToOne(cascade = CascadeType.ALL)
 //        @JoinColumn(name = "ingredient_id")
@@ -46,13 +46,12 @@ public class MealPlan {
         public MealPlan() {
         }
 
-        public MealPlan(Long id, String name, String description, double price, List<MealCustomization> mealCustomizations, List<Subscription> subscriptions, Menu menu, MealPlanType mealPlanType) {
+        public MealPlan(Long id, String name, String description, double price, List<MealCustomization> mealCustomizations, Menu menu, MealPlanType mealPlanType) {
                 this.id = id;
                 this.name = name;
                 this.description = description;
                 this.price = price;
                 this.mealCustomizations = mealCustomizations;
-                this.subscriptions = subscriptions;
                 this.menu = menu;
                 this.mealPlanType = mealPlanType;
         }
@@ -97,14 +96,6 @@ public class MealPlan {
                 this.mealCustomizations = mealCustomizations;
         }
 
-        public List<Subscription> getSubscriptions() {
-                return subscriptions;
-        }
-
-        public void setSubscriptions(List<Subscription> subscriptions) {
-                this.subscriptions = subscriptions;
-        }
-
         public Menu getMenu() {
                 return menu;
         }
@@ -129,10 +120,8 @@ public class MealPlan {
                         ", description='" + description + '\'' +
                         ", price=" + price +
                         ", mealCustomizations=" + mealCustomizations +
-                        ", subscriptions=" + subscriptions +
                         ", menu=" + menu +
                         ", mealPlanType=" + mealPlanType +
                         '}';
         }
 }
-

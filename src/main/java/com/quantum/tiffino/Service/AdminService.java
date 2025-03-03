@@ -32,4 +32,7 @@ public interface AdminService {
     Optional<String> validateOtpAndResetPassword(String otp, String newPassword, String confirmPassword);
 
     void credentialSendToEmail(String email);
+
+    @Transactional
+    String replaceMainManager(Long adminId, Admin newManager);
 }

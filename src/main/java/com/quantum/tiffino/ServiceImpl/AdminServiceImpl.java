@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,8 +71,12 @@ public class AdminServiceImpl implements AdminService {
         String uniqueCode = generateUniqueCode(admin.getCity(), admin.getArea());
         admin.setUniqueCode(uniqueCode);
 
+        // Store the password in plain text initially but require a reset on first login
+        admin.setPassword(admin.getPassword());
+        admin.setFirstLogin(true);
 
-        admin.setPassword(new BCryptPasswordEncoder().encode(admin.getPassword()));
+        // admin.setPassword(new BCryptPasswordEncoder().encode(admin.getPassword()));
+        // admin.setPassword(admin.getPassword());
 
 
         Admin savedAdmin = adminRepository.save(admin);
@@ -107,57 +111,89 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+//    @Override
+//    public String loginAdmin(String username, String password) {
+//        logger.info("Admin login attempt for username: {}", username);
+//
+//        Admin admin = adminRepository.findByUsername(username)
+//                .orElseThrow(() -> {
+//                    logger.error("Admin not found with username: {}", username);
+//                    return new RuntimeException("Admin not found");
+//                });
+//
+//
+//        if (new BCryptPasswordEncoder().matches(password, admin.getPassword())) {
+//            logger.info("Login successful for username: {}", username);
+//            return "Login successful!";
+//        } else {
+//            logger.error("Invalid credentials for username: {}", username);
+//            throw new RuntimeException("Invalid credentials");
+//        }
+//    }
+
     @Override
     public String loginAdmin(String username, String password) {
-        logger.info("Admin login attempt for username: {}", username);
-
         Admin admin = adminRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    logger.error("Admin not found with username: {}", username);
-                    return new RuntimeException("Admin not found");
-                });
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
 
+        if (admin.isFirstLogin()) {
+            throw new RuntimeException("Please reset your password before logging in.");
+        }
 
-        if (new BCryptPasswordEncoder().matches(password, admin.getPassword())) {
-            logger.info("Login successful for username: {}", username);
+        if (passwordEncoder.matches(password, admin.getPassword())) {
             return "Login successful!";
         } else {
-            logger.error("Invalid credentials for username: {}", username);
             throw new RuntimeException("Invalid credentials");
         }
     }
 
+
+//    @Override
+//    @Transactional
+//    public Admin updateAdmin(Long adminId, Admin adminDetails) {
+//        logger.info("Updating admin by id: {}, data: {}", adminId, adminDetails);
+//
+//
+//        Admin existingAdmin = adminRepository.findById(adminId)
+//                .orElseThrow(() -> new AdminNotFoundException("Admin with ID " + adminId + " not found"));
+//
+//        // Update fields only if the new value is not null and valid
+//        if (adminDetails.getName() != null && ValidationClass.NAME_PATTERN.matcher(adminDetails.getName()).matches()) {
+//            existingAdmin.setName(adminDetails.getName());
+//        }
+//        if (adminDetails.getMobileNo() != null && ValidationClass.PHONE_PATTERN.matcher(adminDetails.getMobileNo()).matches()) {
+//            existingAdmin.setMobileNo(adminDetails.getMobileNo());
+//        }
+//        if (adminDetails.getUsername() != null && ValidationClass.USERNAME_PATTERN.matcher(adminDetails.getUsername()).matches()) {
+//            existingAdmin.setUsername(adminDetails.getUsername());
+//        }
+//        if (adminDetails.getPassword() != null && ValidationClass.PASSWORD_PATTERN.matcher(adminDetails.getPassword()).matches()) {
+//            existingAdmin.setPassword(new BCryptPasswordEncoder().encode(adminDetails.getPassword()));  // Encrypt password
+//        }
+//        if (adminDetails.getEmail() != null && ValidationClass.EMAIL_PATTERN.matcher(adminDetails.getEmail()).matches()) {
+//            existingAdmin.setEmail(adminDetails.getEmail());
+//        }
+//
+//
+//        Admin updatedAdmin = adminRepository.save(existingAdmin);
+//        logger.info("Successfully updated admin with id: {}", adminId);
+//        return updatedAdmin;
+//    }
+
     @Override
     @Transactional
     public Admin updateAdmin(Long adminId, Admin adminDetails) {
-        logger.info("Updating admin by id: {}, data: {}", adminId, adminDetails);
-
-
         Admin existingAdmin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin with ID " + adminId + " not found"));
 
-        // Update fields only if the new value is not null and valid
-        if (adminDetails.getName() != null && ValidationClass.NAME_PATTERN.matcher(adminDetails.getName()).matches()) {
-            existingAdmin.setName(adminDetails.getName());
-        }
-        if (adminDetails.getMobileNo() != null && ValidationClass.PHONE_PATTERN.matcher(adminDetails.getMobileNo()).matches()) {
-            existingAdmin.setMobileNo(adminDetails.getMobileNo());
-        }
-        if (adminDetails.getUsername() != null && ValidationClass.USERNAME_PATTERN.matcher(adminDetails.getUsername()).matches()) {
-            existingAdmin.setUsername(adminDetails.getUsername());
-        }
         if (adminDetails.getPassword() != null && ValidationClass.PASSWORD_PATTERN.matcher(adminDetails.getPassword()).matches()) {
-            existingAdmin.setPassword(new BCryptPasswordEncoder().encode(adminDetails.getPassword()));  // Encrypt password
-        }
-        if (adminDetails.getEmail() != null && ValidationClass.EMAIL_PATTERN.matcher(adminDetails.getEmail()).matches()) {
-            existingAdmin.setEmail(adminDetails.getEmail());
+            existingAdmin.setPassword(passwordEncoder.encode(adminDetails.getPassword()));
+            existingAdmin.setFirstLogin(false);  // Reset first login flag after password change
         }
 
-
-        Admin updatedAdmin = adminRepository.save(existingAdmin);
-        logger.info("Successfully updated admin with id: {}", adminId);
-        return updatedAdmin;
+        return adminRepository.save(existingAdmin);
     }
+
 
     @Override
     public void deleteAdmin(Long adminId) {
@@ -179,7 +215,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private String generateUniqueCode(String city, String area) {
-        // Create a base unique code using city and area
+
         String cityCode = city.toLowerCase(); // Convert city to lowercase for uniformity
         String areaCode = area.toLowerCase().replace(" ", "-"); // Replace spaces with hyphens in area name
         String uniqueSuffix = String.valueOf(System.currentTimeMillis()).substring(6); // Use current time for uniqueness
@@ -219,29 +255,44 @@ public class AdminServiceImpl implements AdminService {
         if (otpRecord == null || otpRecord.getExpiryDate().isBefore(LocalDateTime.now())) {
             return Optional.empty();
         }
+//        Admin admin = otpRecord.getAdmin();
+//        String encodedPassword = passwordEncoder.encode(newPassword);
+//        admin.setPassword(encodedPassword);
+//        adminRepository.save(admin);
+//        return Optional.of("Password reset successfully.");
+
         Admin admin = otpRecord.getAdmin();
-        String encodedPassword = passwordEncoder.encode(newPassword);
-        admin.setPassword(encodedPassword);
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        admin.setFirstLogin(false);
         adminRepository.save(admin);
         return Optional.of("Password reset successfully.");
     }
 
     @Override
     public void credentialSendToEmail(String email) {
-        Admin admin = new Admin();
-        if(admin==null)
-        {
-          admin.setUsername(admin.getUsername());
-          admin.setPassword(admin.getPassword());
-          admin.setUniqueCode(admin.getUniqueCode());
-        }
-        adminRepository.existsByEmail(email);
+        Optional<Admin> adminOptional = adminRepository.findByEmail(email);
 
+        if (adminOptional.isEmpty()) {
+            throw new RuntimeException("Admin not found with the given email.");
+        }
+
+        Admin admin = adminOptional.get();
+        String credentialsMessage = "Your Credentials:\nUsername: " + admin.getUsername() + "\nPassword: " + admin.getPassword() + "\nUniqueCode: " + admin.getUniqueCode();
+
+        sendEmail(admin.getEmail(), "Your Admin Credentials", credentialsMessage);
+    }
+
+    private void sendEmail(String to, String subject, String text) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+        mailSender.send(message);
     }
 
 
     private String generateOtp() {
-        int otp = 100000 + new Random().nextInt(900000); // Generate 6-digit OTP
+        int otp = 100000 + new Random().nextInt(900000);
         return String.valueOf(otp);
     }
 
@@ -254,6 +305,49 @@ public class AdminServiceImpl implements AdminService {
 
         mailSender.send(message);
 
+
+    }
+
+
+    @Transactional
+    @Override
+    public String replaceMainManager(Long adminId, Admin newManager) {
+
+        Admin existingManager = adminRepository.findById(adminId)
+
+                .orElseThrow(() -> new AdminNotFoundException("Admin with ID " + adminId + " not found"));
+
+
+        String uniqueCode = existingManager.getUniqueCode();
+
+        Optional<Admin> usernameConflict = adminRepository.findByUsername(newManager.getUsername());
+
+        if (usernameConflict.isPresent() && !usernameConflict.get().getId().equals(adminId)) {
+
+            throw new RuntimeException("Username already exists. Please choose a different one.");
+
+        }
+
+
+        existingManager.setUsername(newManager.getUsername());
+
+        existingManager.setPassword(newManager.getPassword());
+
+        existingManager.setEmail(newManager.getEmail());
+
+        existingManager.setName(newManager.getName());
+
+        existingManager.setMobileNo(newManager.getMobileNo());
+
+        existingManager.setFirstLogin(true); // Force the new manager to reset password on first login
+
+        adminRepository.save(existingManager);
+
+        // Send updated credentials via email
+
+        credentialSendToEmail(existingManager.getEmail());
+
+        return "New Main Manager has been assigned successfully.";
 
     }
 }

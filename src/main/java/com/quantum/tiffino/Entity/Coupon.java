@@ -16,18 +16,17 @@ public class Coupon {
     private DiscountType discountType;
 
     private double discountPercentage;
-    private double discountAmount;
+    //private double discountAmount;
     private boolean isActive;
     private LocalDateTime expirationDate;
     private int maxUsageLimit;
     private int usedCount;
 
-    public Coupon(Long id, String code, DiscountType discountType, double discountPercentage, double discountAmount, boolean isActive, LocalDateTime expirationDate, int maxUsageLimit, int usedCount) {
+    public Coupon(Long id, String code, DiscountType discountType, double discountPercentage, boolean isActive, LocalDateTime expirationDate, int maxUsageLimit, int usedCount) {
         this.id = id;
         this.code = code;
         this.discountType = discountType;
         this.discountPercentage = discountPercentage;
-        this.discountAmount = discountAmount;
         this.isActive = isActive;
         this.expirationDate = expirationDate;
         this.maxUsageLimit = maxUsageLimit;
@@ -64,14 +63,6 @@ public class Coupon {
 
     public void setDiscountPercentage(double discountPercentage) {
         this.discountPercentage = discountPercentage;
-    }
-
-    public double getDiscountAmount() {
-        return discountAmount;
-    }
-
-    public void setDiscountAmount(double discountAmount) {
-        this.discountAmount = discountAmount;
     }
 
     public boolean isActive() {
@@ -113,7 +104,6 @@ public class Coupon {
                 ", code='" + code + '\'' +
                 ", discountType=" + discountType +
                 ", discountPercentage=" + discountPercentage +
-                ", discountAmount=" + discountAmount +
                 ", isActive=" + isActive +
                 ", expirationDate=" + expirationDate +
                 ", maxUsageLimit=" + maxUsageLimit +

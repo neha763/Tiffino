@@ -4,7 +4,6 @@ import com.quantum.tiffino.Entity.Restaurant;
 import com.quantum.tiffino.Entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-
 import java.util.List;
 import java.util.Optional;
 
