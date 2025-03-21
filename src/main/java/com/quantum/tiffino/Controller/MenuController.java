@@ -1,6 +1,6 @@
 package com.quantum.tiffino.Controller;
 
-import com.quantum.tiffino.Entity.Menu;
+import com.quantum.tiffino.Entity.*;
 import com.quantum.tiffino.Exception.MenuNotFoundException;
 import com.quantum.tiffino.Service.MenuService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,11 +27,65 @@ public class MenuController {
     private MenuService menuService;
 
     // Create a new menu
-    @PostMapping
-    public ResponseEntity<Menu> createMenu(@RequestBody Menu menu) {
-        Menu savedMenu = menuService.saveMenu(menu);
-        return new ResponseEntity<>(savedMenu, HttpStatus.CREATED);
+//    @PostMapping
+//    public ResponseEntity<Menu> createMenu(@RequestBody Menu menu) {
+//        Menu savedMenu = menuService.saveMenu(menu);
+//        return new ResponseEntity<>(savedMenu, HttpStatus.CREATED);
+//    }
+
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<Menu> createMenu(
+            @RequestParam("itemName") String itemName,
+            @RequestParam("startDate") String startDate,
+            @RequestParam("endDate") String endDate,
+            @RequestParam("cuisineType") CuisineType cuisineType,
+            @RequestParam("regionId") Long regionId,
+            @RequestParam("category") Category category,
+            @RequestParam("restaurantId") Long restaurantId,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
+        try {
+            Menu menu = new Menu();
+            menu.setItemName(itemName);
+            menu.setStartDate(LocalDate.parse(startDate));
+            menu.setEndDate(LocalDate.parse(endDate));
+            menu.setCuisineType(cuisineType);
+            menu.setCategory(category);
+
+            // Set Region & Restaurant objects
+            Region region = new Region();
+            region.setId(regionId);
+            menu.setRegion(region);
+
+            Restaurant restaurant = new Restaurant();
+            restaurant.setId(restaurantId);
+            menu.setRestaurant(restaurant);
+
+            // Handle Image Upload
+            if (file != null && !file.isEmpty()) {
+                String uploadDir = "uploads/";
+                File uploadFolder = new File(uploadDir);
+                if (!uploadFolder.exists()) {
+                    uploadFolder.mkdirs();
+                }
+
+                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                Path filePath = Paths.get(uploadDir, fileName);
+                Files.write(filePath, file.getBytes());
+
+                String imageUrl = "http://localhost:8080/uploads/" + fileName;
+                menu.setImageUrl(imageUrl);
+            }
+
+            // Save menu to DB
+            Menu savedMenu = menuService.saveMenu(menu);
+            return new ResponseEntity<>(savedMenu, HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
 
     // Get a menu by its ID
     @GetMapping("/{menuId}")

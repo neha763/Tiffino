@@ -1,6 +1,7 @@
 package com.quantum.tiffino.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,9 +25,9 @@ public class Restaurant {
     @Column(nullable = false)
     private String location; // Location or address of the restaurant/cloud kitchen
 
-    private String description; // Brief description of the restaurant
+    private String description;
 
-    private String contactNumber; // Contact number for the restaurant
+    private String contactNumber;
 
     @Enumerated(EnumType.STRING)
     private CuisineType cuisineType; // Enum to store cuisine type (e.g., Punjabi, South Indian, Bengali, etc.)
@@ -34,7 +35,9 @@ public class Restaurant {
     @Column(nullable = false)
     private Boolean isActive = true; // Is the restaurant currently active and delivering?
 
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Menu> menus; // List of menu items served by the restaurant
 
     @OneToMany(mappedBy = "id")
@@ -162,11 +165,5 @@ public class Restaurant {
         this.rating = rating;
     }
 
-//    public List<Order> getOrder() {
-//        return orders;
-//    }
-//
-//    public void setOrder(List<Order> orders) {
-//        this.orders = order;
-//    }
+
 }

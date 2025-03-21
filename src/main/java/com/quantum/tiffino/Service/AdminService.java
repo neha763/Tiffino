@@ -35,4 +35,6 @@ public interface AdminService {
 
     @Transactional
     String replaceMainManager(Long adminId, Admin newManager);
+
+    boolean changePassword(String email, String oldPassword, String newPassword);
 }

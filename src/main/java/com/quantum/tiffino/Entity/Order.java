@@ -1,4 +1,5 @@
 package com.quantum.tiffino.Entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -7,7 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 @Data
@@ -39,6 +39,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "meal_customization_id")
+    @JsonIgnore
     private MealCustomization mealCustomization;
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -46,6 +47,7 @@ public class Order {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "order")
+    @JsonIgnore
     private List<Delivery> delivery;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -2,6 +2,7 @@ package com.quantum.tiffino.Entity;
 
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -18,7 +19,8 @@ public class Region {
     private String name;
 
     // List of menus available in this region
-    @OneToMany(mappedBy = "region")
+    @JsonIgnore
+    @OneToMany(mappedBy = "region",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Menu> menus;  // Menu items available in the region
 
     // Default constructor

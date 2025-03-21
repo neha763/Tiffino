@@ -5,6 +5,7 @@ import com.quantum.tiffino.Entity.Admin;
 
 import com.quantum.tiffino.Entity.ForgotPasswordOtp;
 import com.quantum.tiffino.Exception.AdminNotFoundException;
+import com.quantum.tiffino.Exception.UserNotFoundException;
 import com.quantum.tiffino.Repository.AdminRepository;
 import com.quantum.tiffino.Repository.ForgotPasswordOtpRepository;
 import com.quantum.tiffino.Repository.UserRepository;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,41 +113,42 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-//    @Override
-//    public String loginAdmin(String username, String password) {
-//        logger.info("Admin login attempt for username: {}", username);
-//
-//        Admin admin = adminRepository.findByUsername(username)
-//                .orElseThrow(() -> {
-//                    logger.error("Admin not found with username: {}", username);
-//                    return new RuntimeException("Admin not found");
-//                });
-//
-//
-//        if (new BCryptPasswordEncoder().matches(password, admin.getPassword())) {
-//            logger.info("Login successful for username: {}", username);
-//            return "Login successful!";
-//        } else {
-//            logger.error("Invalid credentials for username: {}", username);
-//            throw new RuntimeException("Invalid credentials");
-//        }
-//    }
-
     @Override
     public String loginAdmin(String username, String password) {
+        logger.info("Admin login attempt for username: {}", username);
+
         Admin admin = adminRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> {
+                    logger.error("Admin not found with username: {}", username);
+                    return new RuntimeException("Admin not found");
+                });
 
-        if (admin.isFirstLogin()) {
-            throw new RuntimeException("Please reset your password before logging in.");
-        }
-
+        // ✅ Use the injected passwordEncoder for comparison
         if (passwordEncoder.matches(password, admin.getPassword())) {
+            logger.info("Login successful for username: {}", username);
             return "Login successful!";
         } else {
+            logger.error("Invalid credentials for username: {}", username);
             throw new RuntimeException("Invalid credentials");
         }
     }
+
+//
+//    @Override
+//    public String loginAdmin(String username, String password) {
+//        Admin admin = adminRepository.findByUsername(username)
+//                .orElseThrow(() -> new RuntimeException("Admin not found"));
+//
+//        if (admin.isFirstLogin()) {
+//            throw new RuntimeException("Please reset your password before logging in.");
+//        }
+//
+//        if (passwordEncoder.matches(password, admin.getPassword())) {
+//            return "Login successful!";
+//        } else {
+//            throw new RuntimeException("Invalid credentials");
+//        }
+//    }
 
 
 //    @Override
@@ -349,5 +352,18 @@ public class AdminServiceImpl implements AdminService {
 
         return "New Main Manager has been assigned successfully.";
 
+    }
+
+    public boolean changePassword(String email, String oldPassword, String newPassword) {
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        if (!passwordEncoder.matches(oldPassword, admin.getPassword())) {
+            return false; // Old password is incorrect
+        }
+
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        adminRepository.save(admin);
+        return true;
     }
 }

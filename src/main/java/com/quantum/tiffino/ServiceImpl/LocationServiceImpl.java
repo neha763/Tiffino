@@ -26,11 +26,13 @@ public class LocationServiceImpl implements LocationService {
 
         if (existingLocation.isPresent()) {
             Location updatedLocation = existingLocation.get();
-            updatedLocation.setUsername(location.getUsername());
+            updatedLocation.setFullName(location.getFullName());
             updatedLocation.setLatitude(location.getLatitude());
             updatedLocation.setLongitude(location.getLongitude());
             updatedLocation.setAddressLine1(location.getAddressLine1());
             updatedLocation.setAddressLine2(location.getAddressLine2());
+            updatedLocation.setPhoneNumber(location.getPhoneNumber());
+            updatedLocation.setEmail(location.getEmail());
             updatedLocation.setCity(location.getCity());
             updatedLocation.setState(location.getState());
             updatedLocation.setPostalCode(location.getPostalCode());

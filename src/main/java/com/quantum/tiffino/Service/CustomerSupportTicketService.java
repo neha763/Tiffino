@@ -10,4 +10,5 @@ public interface CustomerSupportTicketService {
     List<CustomerSupportTicket> getAllTickets();
     CustomerSupportTicket updateTicketStatus(long ticketId, String status);
 
+    boolean deleteTicket(long ticketId);
 }

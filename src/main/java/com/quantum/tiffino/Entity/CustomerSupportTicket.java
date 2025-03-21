@@ -1,7 +1,6 @@
 package com.quantum.tiffino.Entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
@@ -16,22 +15,25 @@ public class CustomerSupportTicket {
     private String issueType;
     private String description;
 
-    // Enum for status
     @Enumerated(EnumType.STRING)
     private Status status;
 
     private LocalDate createdAt;
     private LocalDate resolvedAt;
 
+    public CustomerSupportTicket() {
+        this.createdAt = LocalDate.now(); // Default createdAt to today
+        this.status = Status.OPEN; // Default status to OPEN
+    }
+
     // Constructor
-    public CustomerSupportTicket(long ticketId, String customerName, String issueType, String description) {
-        this.ticketId = ticketId;
+    public CustomerSupportTicket(String customerName, String issueType, String description) {
         this.customerName = customerName;
         this.issueType = issueType;
         this.description = description;
-        this.status = Status.OPEN;  // Default status set to OPEN
-        this.createdAt = LocalDate.now();  // Set created date to the current date
-        this.resolvedAt = null;  // Resolved date is null initially
+        this.status = Status.OPEN;
+        this.createdAt = LocalDate.now();
+        this.resolvedAt = null;
     }
 
     // Getters and Setters
@@ -73,8 +75,9 @@ public class CustomerSupportTicket {
 
     public void setStatus(Status status) {
         this.status = status;
-        if (status == Status.RESOLVED) {
-            this.resolvedAt = LocalDate.now();  // Set resolvedAt to current date if status is resolved
+
+        if (status == Status.RESOLVED && this.resolvedAt == null) {
+            this.resolvedAt = LocalDate.now(); // Set resolvedAt only if it's not already set
         }
     }
 
@@ -82,11 +85,19 @@ public class CustomerSupportTicket {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDate createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public LocalDate getResolvedAt() {
         return resolvedAt;
     }
 
-    // toString Method for easy printing
+    public void setResolvedAt(LocalDate resolvedAt) {
+        this.resolvedAt = resolvedAt;
+    }
+
+    // toString Method for easy debugging
     @Override
     public String toString() {
         return "Ticket ID: " + ticketId +
@@ -97,7 +108,7 @@ public class CustomerSupportTicket {
                 (resolvedAt != null ? ", Resolved At: " + resolvedAt : "");
     }
 
-    // Enum for status
+    // Enum for ticket status
     public enum Status {
         OPEN,
         RESOLVED,

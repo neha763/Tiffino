@@ -19,8 +19,7 @@ public class MealAvailability {
 
 
     private LocalDate availabilityDate;
-
-
+    @Column(name = "is_available")
     private boolean isAvailable;
 
 

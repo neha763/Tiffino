@@ -37,6 +37,10 @@ public class Subscription {
     private String phoneNumber;
     private String email;
 
+
+    @Enumerated(EnumType.STRING)
+    private PaymentPlan paymentPlan;
+
 //    @OneToOne
 //    private MealPlan mealPlan;
 
@@ -151,6 +155,14 @@ public class Subscription {
 
     public void setPayment(Payment payment) {
         this.payment = payment;
+    }
+
+    public PaymentPlan getPaymentPlan() {
+        return paymentPlan;
+    }
+
+    public void setPaymentPlan(PaymentPlan paymentPlan) {
+        this.paymentPlan = paymentPlan;
     }
 }
 
