@@ -1,53 +1,81 @@
 package com.quantum.tiffino.Controller;
 
-import com.quantum.tiffino.Entity.DeliveryPerson;
+import com.quantum.tiffino.Entity.ResponseMessage;
 import com.quantum.tiffino.Service.DeliveryPersonService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/delivery-persons")
-@CrossOrigin("*")
 public class DeliveryPersonController {
 
-    @Autowired
-    private DeliveryPersonService deliveryPersonService;
+    private static final Logger logger = LoggerFactory.getLogger(DeliveryPersonController.class);
 
-    // Endpoint to create a new delivery person
-    @PostMapping("/create")
-    public ResponseEntity<DeliveryPerson> createDeliveryPerson(@RequestBody DeliveryPerson deliveryPerson) {
-        DeliveryPerson createdDeliveryPerson = deliveryPersonService.createDeliveryPerson(deliveryPerson);
-        return ResponseEntity.ok(createdDeliveryPerson);
+
+    private final DeliveryPersonService deliveryPersonService;
+
+    public DeliveryPersonController(DeliveryPersonService deliveryPersonService) {
+        this.deliveryPersonService = deliveryPersonService;
     }
 
-    // Endpoint to get a delivery person by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<DeliveryPerson> getDeliveryPersonById(@PathVariable Long id) {
-        DeliveryPerson deliveryPerson = deliveryPersonService.getDeliveryPersonById(id);
-        return ResponseEntity.ok(deliveryPerson);
+
+    @PostMapping("/register")
+    public ResponseEntity<ResponseMessage> register(
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam("phoneNumber") String phoneNumber,
+            @RequestParam("vehicleType") String vehicleType,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestParam("aadharNumber") String aadharNumber,
+            @RequestParam("panNumber") String panNumber,
+            @RequestParam("licenseNumber") String licenseNumber,
+            @RequestParam("bankAccountNumber") String bankAccountNumber,
+            @RequestParam("ifscCode") String ifscCode,
+            @RequestParam("profilePicture") MultipartFile profilePicture,
+            HttpServletRequest request) throws IOException {
+
+        // Log the full request parameters to check what is missing
+        logger.info("Received request parameters: {}", request.getParameterMap());
+
+        return deliveryPersonService.register(
+                name, phoneNumber, vehicleType, email, password,
+                aadharNumber, panNumber, licenseNumber, bankAccountNumber, ifscCode,
+                profilePicture
+        );
     }
 
-    // Endpoint to get all delivery persons
-    @GetMapping("/list")
-    public ResponseEntity<List<DeliveryPerson>> getAllDeliveryPersons() {
-        List<DeliveryPerson> deliveryPersons = deliveryPersonService.getAllDeliveryPersons();
-        return ResponseEntity.ok(deliveryPersons);
+
+    @PostMapping("/login")
+    public ResponseEntity<ResponseMessage> login(
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam("selfieFile") MultipartFile selfieFile) throws IOException {
+
+        return deliveryPersonService.login(email, password, selfieFile);
     }
 
-    // Endpoint to update a delivery person
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Void> updateDeliveryPerson(@PathVariable Long id, @RequestBody DeliveryPerson deliveryPerson) {
-        deliveryPersonService.updateDeliveryPerson(id, deliveryPerson);
-        return ResponseEntity.ok().build();
+
+    @PostMapping("/verify/{id}")
+    public ResponseEntity<ResponseMessage> verify(@PathVariable Long id, @RequestParam boolean approve) {
+        return deliveryPersonService.verifyDeliveryPerson(id, approve);
     }
 
-    // Endpoint to delete a delivery person by ID
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteDeliveryPerson(@PathVariable Long id) {
-        deliveryPersonService.deleteDeliveryPerson(id);
-        return ResponseEntity.ok().build();
+    @PutMapping("/{id}/available/{status}")
+    public ResponseEntity<ResponseMessage> updateAvailability(@PathVariable Long id, @PathVariable boolean status) {
+        ResponseMessage response = new ResponseMessage("Availability updated successfully", true);
+        return ResponseEntity.ok().body(response);
+    }
+
+
+
+    @GetMapping
+    public ResponseEntity<ResponseMessage> getAll() {
+        return deliveryPersonService.getAllDeliveryPersons();
     }
 }

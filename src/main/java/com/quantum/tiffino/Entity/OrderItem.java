@@ -28,10 +28,11 @@ public class OrderItem {
 
     private int quantity;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "order_id", referencedColumnName = "id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("order-orderItems")
+    @ManyToOne
+    @JoinColumn(name = "order_id")
     private Order order;
+
 
     public Long getId() {
         return Id;
@@ -87,5 +88,18 @@ public class OrderItem {
 
     public void setOrder(Order order) {
         this.order = order;
+    }
+
+    @Override
+    public String toString() {
+        return "OrderItem{" +
+                "Id=" + Id +
+                ", name='" + name + '\'' +
+                ", netPrice=" + netPrice +
+                ", grossPrice=" + grossPrice +
+                ", discountPrice=" + discountPrice +
+                ", quantity=" + quantity +
+                ", order=" + order +
+                '}';
     }
 }

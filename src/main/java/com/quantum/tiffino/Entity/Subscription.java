@@ -1,6 +1,7 @@
 package com.quantum.tiffino.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -13,10 +14,17 @@ public class Subscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonBackReference("user-subscription") // Must match User's @JsonManagedReference
     @ManyToOne
-    @JoinColumn(name = "user_id",nullable = false)
-    @JsonBackReference(value = "user_subscription")
+    @JoinColumn(name = "user_id")
     private User user;
+
+    @JsonBackReference("order-subscriptions")
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+
 
     @Enumerated(EnumType.STRING)
     private SubscriptionType subscriptionType;
@@ -28,7 +36,6 @@ public class Subscription {
 
     private Date startDate;
     private Date endDate;
-
     private Double totalAmount;
 
     private boolean isZeroCostDelivery;

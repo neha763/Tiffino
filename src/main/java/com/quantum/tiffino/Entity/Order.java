@@ -1,19 +1,17 @@
 package com.quantum.tiffino.Entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
-
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 @Data
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name="orders")
 public class Order {
@@ -22,7 +20,6 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(name = "date_and_time")
     @DateTimeFormat
     private LocalDateTime localDateTime = LocalDateTime.now();
@@ -30,30 +27,40 @@ public class Order {
     @NotNull(message = "Order status cannot be null")
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status")
-    private OrderStatus orderStatus;
+    private OrderStatus orderStatus = OrderStatus.PENDING;
 
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id")
+    @JsonBackReference("restaurant-orders")  // Prevents recursion
     private Restaurant restaurant;
 
     @ManyToOne
     @JoinColumn(name = "meal_customization_id")
-    @JsonIgnore
+    @JsonIgnore // Prevents deep nesting issue
     private MealCustomization mealCustomization;
 
-    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("order-orderItems")
+    @OneToMany(mappedBy = "order",cascade = CascadeType.ALL)
+    //@JsonManagedReference // Allows serialization of this side
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "order")
-    @JsonIgnore
-    private List<Delivery> delivery;
+    @JsonManagedReference("order-delivery")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Delivery> delivery = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_status")
+    private DeliveryStatus deliveryStatus = DeliveryStatus.PENDING;
+
+    @JsonBackReference("user-orders")  // Unique reference name
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+//    @JsonManagedReference("order-subscriptions")
+//    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+//    private List<Subscription> subscriptions = new ArrayList<>();
 
     @Column(name = "total_gross_value")
     private double totalGrossValue;
@@ -63,7 +70,6 @@ public class Order {
 
     @Column(name = "total_discount")
     private double totalDiscount;
-
 
     @Column(name = "delivery_charges")
     private double deliveryCharges;
@@ -76,6 +82,32 @@ public class Order {
 
     @Column(name = "grand_total")
     private double grandTotal;
+
+    @ManyToOne
+    @JoinColumn(name = "delivery_person_id") // Foreign key in order table
+    private DeliveryPerson deliveryPerson;
+
+
+    public Order() {
+    }
+
+    public Order(Long id, LocalDateTime localDateTime, OrderStatus orderStatus, Restaurant restaurant, MealCustomization mealCustomization, List<OrderItem> orderItems, List<Delivery> delivery, User user, double totalGrossValue, double totalNetValue, double totalDiscount, double deliveryCharges, double platformCharges, double gst, double grandTotal) {
+        this.id = id;
+        this.localDateTime = localDateTime;
+        this.orderStatus = orderStatus;
+        this.restaurant = restaurant;
+        this.mealCustomization = mealCustomization;
+        this.orderItems = orderItems;
+        this.delivery = delivery;
+        this.user = user;
+        this.totalGrossValue = totalGrossValue;
+        this.totalNetValue = totalNetValue;
+        this.totalDiscount = totalDiscount;
+        this.deliveryCharges = deliveryCharges;
+        this.platformCharges = platformCharges;
+        this.gst = gst;
+        this.grandTotal = grandTotal;
+    }
 
     public Long getId() {
         return id;
@@ -196,5 +228,27 @@ public class Order {
     public void setGrandTotal(double grandTotal) {
         this.grandTotal = grandTotal;
     }
-}
 
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", localDateTime=" + localDateTime +
+                ", orderStatus=" + orderStatus +
+                ", restaurant=" + restaurant +
+                ", mealCustomization=" + mealCustomization +
+                ", orderItems=" + orderItems +
+                ", delivery=" + delivery +
+                ", user=" + user +
+                ", totalGrossValue=" + totalGrossValue +
+                ", totalNetValue=" + totalNetValue +
+                ", totalDiscount=" + totalDiscount +
+                ", deliveryCharges=" + deliveryCharges +
+                ", platformCharges=" + platformCharges +
+                ", gst=" + gst +
+                ", grandTotal=" + grandTotal +
+                '}';
+    }
+
+
+}

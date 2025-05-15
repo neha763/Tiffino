@@ -16,9 +16,13 @@ public interface OrderService {
 
     Order updateOrderStatus(Long orderId, String status);
 
-    Delivery assignDeliveryToOrder(Long orderId, Long deliveryPersonId);
+    Delivery assignDeliveryToOrder(Long orderId);
 
     List<OrderItem> getOrderItems(Long orderId);
 
     void cancelOrder(Long orderId);
+
+    void acceptOrder(Long orderId);
+
+    void rejectOrder(Long orderId);
 }

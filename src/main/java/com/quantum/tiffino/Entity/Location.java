@@ -1,5 +1,6 @@
 package com.quantum.tiffino.Entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,8 +28,9 @@ public class Location {
 
         @ManyToOne
         @JoinColumn(name = "user_id")
-        @JsonBackReference
-        @JsonIgnoreProperties("locations")
+        @JsonIgnore
+//        @JsonBackReference
+//        @JsonIgnoreProperties("locations")
         private User user;
 
         public Location()

@@ -2,6 +2,8 @@ package com.quantum.tiffino.Entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,9 +21,9 @@ public class User {
     private String phoneNumber;
     private String confirmPassword;
 
-    @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "user_subscription")
-    private List<Subscription> subscriptions;
+    @JsonManagedReference("user-subscription") // Must match Subscription's @JsonBackReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Subscription> subscriptions = new ArrayList<>();
 
 
     @ManyToMany
@@ -40,8 +42,10 @@ public class User {
     @JsonManagedReference
     private Membership membership;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Order> orders;
+    @JsonManagedReference("user-orders") // Must match Order's @JsonBackReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Order> orders = new ArrayList<>();
+
 
 
 //    @JoinColumn(name = "reward_points", referencedColumnName = "reward_points", nullable = false)
